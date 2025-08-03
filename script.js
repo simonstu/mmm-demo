@@ -59,7 +59,8 @@ new Chart(document.getElementById('historyChart'), {
 const totalBudget = 100000;
 const maxPerMonth = 20000;
 const baseSales = 5000;
-const salesFactor = 2;
+
+const roi = { Search: 4, Social: 3, Email: 2 };
 
 const planSpend = {
   Search: Array(12).fill(3000),
@@ -124,7 +125,7 @@ const planChart = new Chart(document.getElementById('planChart'), {
               otherMonth += ds.data[index];
             }
           });
-          let newValue = Math.min(Math.max(value, 0), maxPerMonth - otherMonth);
+          let newValue = Math.max(0, Math.min(value, maxPerMonth - otherMonth));
           // Total budget cap
           let otherTotal = 0;
           datasets.forEach((ds, idx) => {
@@ -134,10 +135,13 @@ const planChart = new Chart(document.getElementById('planChart'), {
               otherTotal += v;
             });
           });
-          newValue = Math.min(newValue, totalBudget - otherTotal);
+          const remainingTotal = Math.max(0, totalBudget - otherTotal);
+          newValue = Math.min(newValue, remainingTotal);
+
           datasets[datasetIndex].data[index] = newValue;
           updatePredictions();
           chart.update();
+          return newValue;
         }
       }
     },
@@ -152,8 +156,10 @@ function updatePredictions() {
   const datasets = planChart.data.datasets;
   const predictions = [];
   for (let i = 0; i < months.length; i++) {
-    const spend = datasets[0].data[i] + datasets[1].data[i] + datasets[2].data[i];
-    predictions[i] = baseSales + salesFactor * spend;
+    const search = datasets[0].data[i] * roi.Search;
+    const social = datasets[1].data[i] * roi.Social;
+    const email = datasets[2].data[i] * roi.Email;
+    predictions[i] = baseSales + search + social + email;
   }
   datasets[3].data = predictions;
 }
