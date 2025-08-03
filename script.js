@@ -59,6 +59,7 @@ new Chart(document.getElementById('historyChart'), {
 const totalBudget = 100000;
 const maxPerMonth = 20000;
 const baseSales = 5000;
+
 const roi = { Search: 4, Social: 3, Email: 2 };
 
 const planSpend = {
@@ -117,7 +118,6 @@ const planChart = new Chart(document.getElementById('planChart'), {
           if (datasetIndex === 3) return; // skip predictions
           const chart = e.chart;
           const datasets = chart.data.datasets;
-
           // Per-month cap
           let otherMonth = 0;
           datasets.forEach((ds, idx) => {
@@ -126,7 +126,6 @@ const planChart = new Chart(document.getElementById('planChart'), {
             }
           });
           let newValue = Math.max(0, Math.min(value, maxPerMonth - otherMonth));
-
           // Total budget cap
           let otherTotal = 0;
           datasets.forEach((ds, idx) => {
