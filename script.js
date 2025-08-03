@@ -59,7 +59,6 @@ new Chart(document.getElementById('historyChart'), {
 const totalBudget = 100000;
 const maxPerMonth = 20000;
 const baseSales = 5000;
-
 const roi = { Search: 4, Social: 3, Email: 2 };
 
 const planSpend = {
@@ -67,6 +66,33 @@ const planSpend = {
   Social: Array(12).fill(2000),
   Email: Array(12).fill(1000)
 };
+
+function calcPredictions() {
+  return months.map((_, i) =>
+    baseSales +
+    planSpend.Search[i] * roi.Search +
+    planSpend.Social[i] * roi.Social +
+    planSpend.Email[i] * roi.Email
+  );
+}
+
+function enforceCaps(channel, month, value) {
+  let otherMonth = 0;
+  Object.keys(planSpend).forEach(key => {
+    if (key !== channel) otherMonth += planSpend[key][month];
+  });
+  let capped = Math.max(0, Math.min(value, maxPerMonth - otherMonth));
+
+  let otherTotal = 0;
+  Object.keys(planSpend).forEach(key => {
+    planSpend[key].forEach((v, idx) => {
+      if (key === channel && idx === month) return;
+      otherTotal += v;
+    });
+  });
+  const remaining = totalBudget - otherTotal;
+  return Math.min(capped, Math.max(0, remaining));
+}
 
 const planChart = new Chart(document.getElementById('planChart'), {
   type: 'line',
@@ -102,7 +128,7 @@ const planChart = new Chart(document.getElementById('planChart'), {
       },
       {
         label: 'Predicted Sales',
-        data: [],
+        data: calcPredictions(),
         borderColor: '#59a14f',
         fill: false,
         stack: 'revenue'
@@ -114,6 +140,12 @@ const planChart = new Chart(document.getElementById('planChart'), {
     plugins: {
       dragData: {
         round: 0,
+        onDrag: function(e, datasetIndex, index, value) {
+          const channel = e.chart.data.datasets[datasetIndex].label;
+          const newValue = enforceCaps(channel, index, value);
+          planSpend[channel][index] = newValue;
+          e.chart.data.datasets[3].data = calcPredictions();
+          e.chart.update();
         onDragEnd: function(e, datasetIndex, index, value) {
           if (datasetIndex === 3) return; // skip predictions
           const chart = e.chart;
