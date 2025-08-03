@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Marketing Spend and Revenue</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-dragdata@2.1.0"></script>
+</head>
+<body>
+  <h1>Marketing Spend & Revenue</h1>
+  <section>
+    <h2>Last 12 Months</h2>
+    <canvas id="historyChart"></canvas>
+  </section>
+  <section>
+    <h2>Next 12 Months</h2>
+    <p>100.000€ in total and a maximum of 20.000€ per month</p>
+    <p>Total marketing spendings: <b id="totalMarketingSpending"></b><b>€</b></p>
+    <p>Predicted Sales: <b id="predictedSales"></b><b>€</b></p>
+    <canvas id="planChart"></canvas>
+  </section>
+  <script src="script.js"></script>
+</body>
+</html>
