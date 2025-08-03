@@ -146,6 +146,33 @@ const planChart = new Chart(document.getElementById('planChart'), {
           planSpend[channel][index] = newValue;
           e.chart.data.datasets[3].data = calcPredictions();
           e.chart.update();
+        onDragEnd: function(e, datasetIndex, index, value) {
+          if (datasetIndex === 3) return; // skip predictions
+          const chart = e.chart;
+          const datasets = chart.data.datasets;
+          // Per-month cap
+          let otherMonth = 0;
+          datasets.forEach((ds, idx) => {
+            if (idx !== datasetIndex && idx !== 3) {
+              otherMonth += ds.data[index];
+            }
+          });
+          let newValue = Math.max(0, Math.min(value, maxPerMonth - otherMonth));
+          // Total budget cap
+          let otherTotal = 0;
+          datasets.forEach((ds, idx) => {
+            if (idx === 3) return;
+            ds.data.forEach((v, i) => {
+              if (idx === datasetIndex && i === index) return;
+              otherTotal += v;
+            });
+          });
+          const remainingTotal = Math.max(0, totalBudget - otherTotal);
+          newValue = Math.min(newValue, remainingTotal);
+
+          datasets[datasetIndex].data[index] = newValue;
+          updatePredictions();
+          chart.update();
           return newValue;
         }
       }
@@ -157,3 +184,16 @@ const planChart = new Chart(document.getElementById('planChart'), {
   }
 });
 
+function updatePredictions() {
+  const datasets = planChart.data.datasets;
+  const predictions = [];
+  for (let i = 0; i < months.length; i++) {
+    const search = datasets[0].data[i] * roi.Search;
+    const social = datasets[1].data[i] * roi.Social;
+    const email = datasets[2].data[i] * roi.Email;
+    predictions[i] = baseSales + search + social + email;
+  }
+  datasets[3].data = predictions;
+}
+
+updatePredictions();
